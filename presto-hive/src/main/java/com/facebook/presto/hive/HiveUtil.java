@@ -122,6 +122,7 @@ import static java.math.BigDecimal.ROUND_UNNECESSARY;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static org.apache.hadoop.hive.common.FileUtils.escapePathName;
 import static org.apache.hadoop.hive.common.FileUtils.unescapePathName;
 import static org.apache.hadoop.hive.metastore.api.hive_metastoreConstants.FILE_INPUT_FORMAT;
 import static org.apache.hadoop.hive.serde.serdeConstants.DECIMAL_TYPE_NAME;
@@ -800,6 +801,36 @@ public final class HiveUtil
             start = end + 1;
         }
         return resultBuilder.build();
+    }
+
+    /**
+     * Generate the partition name from partition keys and values.
+     * Mimics Warehouse.makePartName.
+     *
+     * Ex: keys=['a', 'b']  values=['1','2']
+     *     partitionName = 'a=1/b=2'
+     */
+    public static String toPartitionName(List<String> partitionKeys, List<String> partitionValues)
+    {
+        requireNonNull(partitionKeys, "partitionKeys is null");
+        requireNonNull(partitionValues, "partitionValues is null");
+        checkArgument(partitionKeys.size() == partitionValues.size(), "partitionKeys & partitionValues do not match");
+
+        StringBuilder partitionName = new StringBuilder();
+        if (!partitionKeys.isEmpty() && !partitionValues.isEmpty()) {
+            partitionName.append(getPartitionColumnName(partitionKeys.get(0), partitionValues.get(0)));
+
+            for (int i = 1; i < partitionKeys.size(); i++) {
+                partitionName.append('/');
+                partitionName.append(getPartitionColumnName(partitionKeys.get(i), partitionValues.get(i)));
+            }
+        }
+        return partitionName.toString();
+    }
+
+    private static String getPartitionColumnName(String partitionKey, String partitionValue)
+    {
+        return escapePathName(partitionKey) + "=" + escapePathName(partitionValue);
     }
 
     public static String getPrefilledColumnValue(HiveColumnHandle columnHandle, HivePartitionKey partitionKey, Path path, OptionalInt bucketNumber)

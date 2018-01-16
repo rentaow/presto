@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.hive;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.serde2.thrift.ThriftDeserializer;
@@ -30,6 +31,7 @@ import java.util.Properties;
 
 import static com.facebook.presto.hive.HiveUtil.getDeserializer;
 import static com.facebook.presto.hive.HiveUtil.parseHiveTimestamp;
+import static com.facebook.presto.hive.HiveUtil.toPartitionName;
 import static com.facebook.presto.hive.HiveUtil.toPartitionValues;
 import static io.airlift.testing.Assertions.assertInstanceOf;
 import static org.apache.hadoop.hive.serde.serdeConstants.SERIALIZATION_CLASS;
@@ -108,5 +110,25 @@ public class TestHiveUtil
             }
         }
         throw new IllegalStateException("no non-default timezone");
+    }
+
+    @Test
+    public void testToPartitionName()
+    {
+        assertEquals(toPartitionName(ImmutableList.of("a"), ImmutableList.of("1")), "a=1");
+        assertEquals(toPartitionName(ImmutableList.of("a", "b"), ImmutableList.of("1", "2")), "a=1/b=2");
+        assertEquals(toPartitionName(ImmutableList.of("a", "b", "c"), ImmutableList.of("1", "2", "3")), "a=1/b=2/c=3");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testToPartitionNameInvalidArguments()
+    {
+        toPartitionName(ImmutableList.of(), ImmutableList.of("1"));
+    }
+
+    @Test
+    public void testToPartitionNameEmpty()
+    {
+        assertEquals(toPartitionName(ImmutableList.of(), ImmutableList.of()), "");
     }
 }
