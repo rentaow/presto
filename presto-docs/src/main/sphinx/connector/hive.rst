@@ -332,6 +332,46 @@ the ``org.apache.hadoop.conf.Configurable`` interface from the Hadoop Java API, 
 will be passed in after the object instance is created and before it is asked to provision or retrieve any
 encryption keys.
 
+AWS Glue Data Catalog Configuration
+-----------------------------------
+
+The Hive connector supports using `Glue Data Catalog <https://aws.amazon.com/glue/>`_ as the Hive metastore.
+To enable Glue Data Catalog, set the ``hive.metastore`` property to ``glue``:
+
+.. code-block:: none
+
+    hive.metastore=glue
+
+Glue Credentials
+^^^^^^^^^^^^^^^^
+
+The `Default Credential Provider Chain <https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default>`_
+is used to access Glue Data Catalog. Please refer to the linked documentation for details on how your credentials are retrieved
+for AWS Glue.
+
+Glue Configuration Properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+===================================================== ====================================================== =============
+Property Name                                         Description                                            Default
+===================================================== ====================================================== =============
+``hive.metastore.glue.region``                        Set the AWS Region for Glue Data Catalog. The AWS
+                                                      client will use ``us-east-1`` by default if this
+                                                      property is not set and Glue request are not pinned
+                                                      to EC2 region.
+
+``hive.metastore.glue.pin-client-to-current-region``  Use the same region for Glue request as the EC2        ``false``
+                                                      instance where Presto is running.
+
+``hive.metastore.glue.max-connections``               Max number of simultaneous open connections to         ``5``
+                                                      Glue.
+
+``hive.metastore.glue.default-warehouse-dir``         The default location to set if it is not specified
+                                                      when creating Schemas or Tables. Location will be
+                                                      left empty by default if it is not explicitly
+                                                      declared.
+===================================================== ====================================================== =============
+
 Schema Evolution
 ----------------
 
